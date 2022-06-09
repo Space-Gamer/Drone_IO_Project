@@ -15,5 +15,5 @@ prodqr = pyqrcode.create(str((lat, lon))+' '+hashed.decode('utf-8'))
 pasqr.show()
 prodqr.show()
 if input("Do you want to save the QR codes? (y/n): ") == 'y':
-    pasqr.svg('passwd.svg', scale=8)
-    prodqr.svg('product.svg', scale=8)
+    pasqr.svg('passwd.png', scale=8)
+    prodqr.svg('product.png', scale=8)
