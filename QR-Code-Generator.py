@@ -1,3 +1,5 @@
+#QR-Code-Generator.py
+
 import pyqrcode
 import string
 import bcrypt
@@ -11,7 +13,7 @@ passwd = ''.join(random.choice(string.ascii_letters + string.digits + string.pun
 hashed = bcrypt.hashpw(passwd.encode('utf-8'), bcrypt.gensalt())
 
 pasqr = pyqrcode.create(passwd)
-prodqr = pyqrcode.create(str((lat, lon))+' '+hashed.decode('utf-8'))
+prodqr = pyqrcode.create(str((lat, lon))+':'+hashed.decode('utf-8'))
 pasqr.show()
 prodqr.show()
 if input("Do you want to save the QR codes? (y/n): ") == 'y':
