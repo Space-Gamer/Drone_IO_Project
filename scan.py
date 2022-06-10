@@ -1,3 +1,5 @@
+#scan.py
+
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -35,7 +37,7 @@ def scan_products():
         res, _, _ = detector.detectAndDecode(image)
         if res:
             try:
-                lst = res.split()
+                lst = res.split(':')
                 if type(eval(lst[0])) == tuple and tuple(eval(lst[0])) not in pdict.keys():
                     pdict[tuple(eval(lst[0]))] = lst[1]
                     print("Product scanned: ", lst[0])
