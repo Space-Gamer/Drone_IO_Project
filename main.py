@@ -2,19 +2,22 @@
 
 from dronekit import *
 import time
-from scan import scan_products
+#from scan import scan_products
+from receiver import authenticate
 from sys import exit
 
 
 #connect to vehicle
 vehicle=connect('127.0.0.1:14551',baud=921600,wait_ready=True)
 
-while True:
-    pdict = scan_products()
-    if not pdict:
-        print("Try again!")
-    else:
-        break
+# while True:
+#     pdict = scan_products()
+#     if not pdict:
+#         print("Try again!")
+#     else:
+#         break
+
+pdict = {(-35.3618326, 149.1632947):'$2b$12$HmnLoCaI0HxU1..8W7T1tuzlAEuXhboN9oTw7lXXzM/P/l/aOSJwe',(-35.3627, 149.1618396):'$2b$12$2tQQ927Cq0SPne5pUdyT5O/6I8URmDTVWvPsm2yXjiRQcrNEdLI3u'}
 
 cur_cord = (vehicle.location.global_relative_frame.lat,vehicle.location.global_relative_frame.lon)
 print("Current coordinates of the drone are:",cur_cord)
@@ -61,14 +64,51 @@ def toff(height):
         print('Reached',vehicle.location.global_relative_frame.alt)
         if(vehicle.location.global_relative_frame.alt>=height*0.95):
             print('reached target altitude')
-            break
+            return 1
         time.sleep(1)
-# toff(10)#Ten meters of height
-# #hover in 10s
-# time.sleep(10)# as 10 seconds we put 10
-# #landing
-# print("Land")
-# vehicle.mode=VehicleMode('RTL')
-# time.sleep(20)
-# #close vehicle
-# vehicle.close()
+    else:
+        return 0
+
+def get_dist_metre(a, b):
+    return (((a.lat-b.lat)**2+(a.lon-b.lon)**2)**0.5)*1.113195e5
+    
+#print(type(way_pt_lst[0][1]))
+if toff(15):
+    for i in range(len(way_pt_lst)):
+        vehicle.simple_goto(LocationGlobalRelative(way_pt_lst[i][0],way_pt_lst[i][1],15))
+        target_dist = get_dist_metre(LocationGlobalRelative(way_pt_lst[i][0],way_pt_lst[i][1],15),vehicle.location.global_relative_frame)
+        while vehicle.mode.name == "GUIDED":
+            rem_dist = get_dist_metre(vehicle.location.global_relative_frame,LocationGlobalRelative(way_pt_lst[i][0],way_pt_lst[i][1],15))
+            print(f"Distance to target {i+1}: {rem_dist}m")
+            if (rem_dist<=target_dist*0.01):
+                print("Reached target",i+1)
+                break
+            time.sleep(2.5)
+        vehicle.mode = VehicleMode("LAND")
+        try:
+            if authenticate(pdict[(way_pt_lst[i][0],way_pt_lst[i][1])]):
+                print(f"Package {i+1} delivered")
+            else:
+                print(f"Package {i+1} was not delivered due to authentication failure.")
+            time.sleep(10)
+        except Exception as e:
+            print(e)
+        vehicle.mode = VehicleMode("GUIDED")
+        toff(15)
+
+print("Returning to base")
+vehicle.simple_goto(LocationGlobalRelative(cur_cord[0],cur_cord[1],15))
+target_dist = get_dist_metre(LocationGlobalRelative(cur_cord[0],cur_cord[1],15),vehicle.location.global_relative_frame)
+while vehicle.mode.name == "GUIDED":
+            rem_dist = get_dist_metre(vehicle.location.global_relative_frame,LocationGlobalRelative(cur_cord[0],cur_cord[1],15))
+            print(f"Distance to inital point is {rem_dist}")
+            if (rem_dist<=target_dist*0.01):
+                print("Reached initial point")
+                break
+            time.sleep(2.5)
+
+print("Land")
+vehicle.mode=VehicleMode('RTL')
+time.sleep(20)
+#close vehicle
+vehicle.close()
