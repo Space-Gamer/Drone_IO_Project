@@ -1,3 +1,5 @@
+#receiver.py
+
 import cv2
 import bcrypt
 
@@ -12,6 +14,7 @@ def authenticate(hashed):
         if res:
             if bcrypt.checkpw(res.encode(), hashed):
                 print("Authenticated")
+                cv2.destroyAllWindows()
                 return 1
             elif res not in wrong_pass:
                 wrong_pass.append(res)
@@ -21,6 +24,7 @@ def authenticate(hashed):
         cv2.imshow("Frame", image)
         key = cv2.waitKey(100)
     print("Authentication failed. Too many wrong attempts.")
+    cv2.destroyAllWindows()
     return 0
 
 if "__main__" == __name__:
